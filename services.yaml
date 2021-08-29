@@ -1,0 +1,42 @@
+open_valve:
+  description: Open a valve.
+  fields:
+    hub:
+      description: Name of a Neptun hub (Smart control module).
+      example: "hub1"
+    valve:
+      description: Zero-based valve number.
+      example: 0
+close_valve:
+  description: Close a valve.
+  fields:
+    hub:
+      description: Name of a Neptun hub (Smart control module).
+      example: "hub1"
+    valve:
+      description: Zero-based valve number.
+      example: 0
+open_all_valves:
+  description: Open all valves.
+  fields:
+    hub:
+      description: Name of a Neptun hub (Smart control module).
+      example: "hub1"
+close_all_valves:
+  description: Close all valves.
+  fields:
+    hub:
+      description: Name of a Neptun hub (Smart control module).
+      example: "hub1"
+set_config_attribute:
+  description: Sets a value of a hub's config attribute.
+  fields:
+    hub:
+      description: Name of a Neptun hub (Smart control module).
+      example: "hub1"
+    name:
+      description: Name of the attribute to be set.
+      example: "pessimistic_wireless_sensor"
+    value:
+      description: Value of the attribute to be set.
+      example: "True"

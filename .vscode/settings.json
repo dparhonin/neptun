@@ -1,0 +1,32 @@
+{
+    "deploy": {
+        
+
+    
+        // "packages": [
+        //     {
+        //         "name": "Version 1.0.0",
+        //         "description": "Package version 1.0.0",
+        //         "files": [
+        //             "/*.py",
+        //             "/*.json",
+        //             "/*.yaml"
+        //         ],
+        //         // "exclude": [
+        //         //     "tests/**"
+        //         // ],
+        //         "deployOnSave": true
+        //     }
+        // ],
+        "targets": [
+            {
+                "type": "local",
+                "name": "Old HomeAssistant",
+                "description": "The old instance of HomeAssistant",
+
+                "dir": "\\\\192.168.1.132\\config\\custom_components\\neptun"
+            }
+        ]
+    },
+    "python.pythonPath": "/usr/bin/python3"
+}

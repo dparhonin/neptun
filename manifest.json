@@ -1,0 +1,9 @@
+{
+  "domain": "neptun",
+  "version": "1.0.0",
+  "name": "Neptun leakage prevention system integration for HomeAssistant",
+  "documentation": "https://github.com/dparhonin/neptun",
+  "requirements": ["pymodbus==2.5.1", "paho-mqtt==1.5.1"],
+  "codeowners": ["@dparhonin"],
+  "iot_class": "local_polling"
+}

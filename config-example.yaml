@@ -1,0 +1,15 @@
+neptun :
+  hubs:
+    - name: kitchen
+      connection:
+        type: serial
+        port: /dev/ttyUSB0
+        timeout: 2
+      valves:
+        - kitchen.valve.hot
+        - kitchen.valve.cold
+  mqtt:
+    host: 192.168.0.1
+    port: 1883
+    user: mqtt-user
+    password: mqtt-password

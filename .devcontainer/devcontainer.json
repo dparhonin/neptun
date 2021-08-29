@@ -1,0 +1,23 @@
+// Based on https://github.com/issacg/hassio-addon-devcontainer
+{
+	"name": "Home Assistant Add-Ons",
+	"context": "..",
+	"dockerFile": "Dockerfile",
+	"appPort": ["7123:8123", "7357:4357"],
+	"postStartCommand": "service docker start",
+	"runArgs": ["-e", "GIT_EDITOR=code --wait", "--privileged"],
+	"extensions": [
+		"timonwong.shellcheck",
+		"esbenp.prettier-vscode",
+		"mkloubert.vs-deploy"
+	],
+	// "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/test_hassio/custom_components/neptun,type=bind,consistency=delegated",
+	// "workspaceFolder": "/workspaces/test_hassio/custom_components/neptun",
+	//"mounts": [
+		// Cache docker images between devcontainer rebuilds (and share between devcontainers)
+	//	"source=vsc-hassio-docker,target=/var/lib/docker,type=volume"
+	//],
+	"settings": { 
+		"terminal.integrated.defaultProfile.linux": "/bin/bash"
+	}
+}

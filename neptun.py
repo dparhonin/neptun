@@ -4,7 +4,7 @@ from homeassistant.components import switch
 import logging
 import threading
 
-from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+from pymodbus.client.serial import ModbusSerialClient as ModbusClient
 from pymodbus.constants import Defaults
 from pymodbus.exceptions import ModbusException
 from pymodbus.transaction import ModbusRtuFramer
@@ -21,7 +21,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.discovery import async_load_platform
 
-from .const import (
+from const import (
     ATTR_FLOOR_WASHING,
     ATTR_HUB,
     ATTR_KEYBOARD_LOCKED,
@@ -188,14 +188,13 @@ class NeptunHub:
             if self._config_type == "serial":
                 # serial configuration
                 self._config_method = "rtu"  # client_config[CONF_METHOD]
-                self._config_baudrate = conn_config[CONF_BAUDRATE]
-                self._config_stopbits = conn_config[CONF_STOPBITS]
-                self._config_bytesize = conn_config[CONF_BYTESIZE]
-                self._config_parity = conn_config[CONF_PARITY]
+                self._config_baudrate = conn_config.get(CONF_BAUDRATE, 9600)
+                self._config_stopbits = conn_config.get(CONF_STOPBITS, 1)
+                self._config_bytesize = conn_config.get(CONF_BYTESIZE, 8)
+                self._config_parity = conn_config.get(CONF_PARITY, "N")
             else:
                 # network configuration
                 raise Exception("Only serial connection types are supported!")
-
     @property
     def name(self):
         """Return the name of this hub."""
@@ -272,7 +271,7 @@ class NeptunHub:
                 self._log_error(exception_error, error_state=False)
                 return
 
-    def open_valve(self, valve):
+    def setBits(self, bits):
         result = self.read_holding_registers(REGISTER_STATUS)
         if result is ModbusException:
             _LOGGER.error(
@@ -280,51 +279,51 @@ class NeptunHub:
             )
         else:
             status = result.registers[0]
-            if valve == 1:
-                status = status | 1 << 8
-            elif valve == 2:
-                status = status | 1 << 9
-            else:
-                raise Exception("Unsupported valve number: {}".format(valve))
+            print("Register value read: {0:d} ({0:b}) <-- REG".format(status))
+            status = status | bits
+            print("Writing value to register: {0:d} ({0:b}) --> REG".format(status))
             self.write_register(REGISTER_STATUS, status)
+
+    def clearBits(self, bits):
+        result = self.read_holding_registers(REGISTER_STATUS)
+        if result is ModbusException:
+            _LOGGER.error(
+                "open_valve: Cannot read holding registers: {}".format(result)
+            )
+        else:
+            status = result.registers[0]
+            print("Register value read: {0:d} ({0:b}) <-- REG".format(status))
+            status = status & bit_not(bits)
+            print("Writing value to register: {0:d} ({0:b}) --> REG".format(status))
+            self.write_register(REGISTER_STATUS, status)
+
+    def useGrouping(self, use: bool):
+        if use:
+            self.setBits(1 << 10)
+        else:
+            self.clearBits(1 << 10)
+
+    def open_valve(self, valve):
+        if valve == 1:
+            self.setBits(1 << 8)
+        elif valve == 2:
+            self.setBits(1 << 9)
+        else:
+            raise Exception("Unsupported valve number: {}".format(valve))
 
     def open_all_valves(self):
-        result = self.read_holding_registers(REGISTER_STATUS)
-        if result is ModbusException:
-            _LOGGER.error(
-                "open_all_valves: Cannot read holding registers: {}".format(result)
-            )
-        else:
-            status = result.registers[0]
-            status = status | 0b11 << 8
-            self.write_register(REGISTER_STATUS, status)
+        self.setBits(0b11 << 8)
 
     def close_valve(self, valve):
-        result = self.read_holding_registers(REGISTER_STATUS)
-        if result is ModbusException:
-            _LOGGER.error(
-                "close_valve: Cannot read holding registers: {}".format(result)
-            )
+        if valve == 1:
+            self.clearBits(1 << 8)
+        elif valve == 2:
+            self.clearBits(1 << 9)
         else:
-            status = result.registers[0]
-            if valve == 1:
-                status = status & bit_not(1 << 8)
-            elif valve == 2:
-                status = status & bit_not(1 << 9)
-            else:
-                raise Exception("Unsupported valve number: ${valve}")
-            self.write_register(REGISTER_STATUS, status)
+            raise Exception("Unsupported valve number: ${valve}")
 
     def close_all_valves(self):
-        result = self.read_holding_registers(REGISTER_STATUS)
-        if result is ModbusException:
-            _LOGGER.error(
-                "close_all_valves: Cannot read holding registers: {}".format(result)
-            )
-        else:
-            status = result.registers[0]
-            status = status & bit_not(0b11 << 8)
-            self.write_register(REGISTER_STATUS, status)
+        self.clearBits(0b11 << 8)
 
     def do_set_bool_attribute(self, status, value, mask) -> int:
         if value == True or (isinstance(value, str) and value.lower()) == "true":
@@ -366,9 +365,8 @@ class NeptunHub:
     def read_holding_registers(self, address, count=1):
         """Read holding registers."""
         with self._lock:
-            kwargs = {"unit": NEPTUN_UNIT}
             try:
-                result = self._client.read_holding_registers(address, count, **kwargs)
+                result = self._client.read_holding_registers(address, count, NEPTUN_UNIT)
             except ModbusException as exception_error:
                 result = exception_error
             if not hasattr(result, "registers"):
@@ -380,9 +378,8 @@ class NeptunHub:
     def write_register(self, address, value) -> bool:
         """Write register."""
         with self._lock:
-            kwargs = {"unit": NEPTUN_UNIT}
             try:
-                result = self._client.write_register(address, value, **kwargs)
+                result = self._client.write_register(address, value, NEPTUN_UNIT)
                 _LOGGER.debug(
                     "*** WriteRegister result: {}, func code={}".format(
                         result, result.function_code

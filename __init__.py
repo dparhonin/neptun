@@ -18,7 +18,7 @@ from homeassistant.const import (
 )
 import homeassistant.helpers.config_validation as cv
 
-from .const import (
+from const import (
     NEPTUN_DOMAIN as DOMAIN,
     ATTR_HUB,
     ATTR_VALVE,

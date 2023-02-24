@@ -1,0 +1,8 @@
+name: kitchen
+connection:
+  type: serial
+  port: COM3
+  timeout: 2
+valves:
+  - kitchen.valve.hot
+  - kitchen.valve.cold
